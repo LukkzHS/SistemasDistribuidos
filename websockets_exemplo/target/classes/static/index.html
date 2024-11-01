@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="styles.css">
+    <title>Teste de WebSocket</title>
+</head>
+<body>
+    <h1>Teste de WebSocket</h1>
+    <div id="output"></div>
+
+    <input type="text" id="messageInput" placeholder="Digite uma mensagem...">
+    <div class="button-container">
+        <button onclick="sendMessage()">Enviar</button>
+        <button onclick="closeConnection()" class="red-button">Fechar Conexão</button>
+    </div>
+
+    <script>
+        const outputDiv = document.getElementById("output");
+        const messageInput = document.getElementById("messageInput");
+    
+        function displayMessage(message, className = "") {
+            const p = document.createElement("p");
+            p.textContent = message;
+            if (className) {
+                p.classList.add(className);
+            }
+            outputDiv.appendChild(p);
+        }
+    
+        const socket = new WebSocket("ws://localhost:8080/ws");
+    
+        socket.onopen = () => {
+            displayMessage("Conectado ao WebSocket", "connected");
+        }
+    
+        socket.onmessage = (event) => {
+            const isAutomaticMessage = event.data.includes("Mensagem periódica do servidor");
+            displayMessage("Mensagem recebida do servidor: " + event.data);
+        }
+        
+    
+        socket.onclose = () => {
+            displayMessage("Conexão WebSocket fechada", "closed");
+        }
+    
+        function sendMessage() {
+            const message = messageInput.value;
+            if(message && socket.readyState === WebSocket.OPEN){
+                socket.send(message);
+                messageInput.value = "";
+            } else if (socket.readyState !== WebSocket.OPEN) {
+                displayMessage("Conexão não está aberta.");
+            }
+        }
+    
+        function closeConnection() {
+            if(socket.readyState === WebSocket.OPEN) {
+                socket.close();
+            } else {
+                displayMessage("Conexão já está fechada.", "closed");
+            }
+        }
+    </script>
+    
+    
+
+</body>
+</html>
